@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تیزهۆشی — تاقیکردنەوەی ئایکیو</title>
+<meta name="description" content="تاقیکردنەوەیەکی ئایکیوی 28 پرسیاری، بۆ پێوانەی توانای لۆژیک، ژمارە و وشە.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="paper-texture" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="brand">
+    <span class="brand-mark">ت</span>
+    <span class="brand-name">تیزهۆشی</span>
+  </div>
+  <div class="header-meta">تاقیکردنەوەی زیرەکی</div>
+</header>
+
+<main id="app">
+
+  <!-- ============ INTRO VIEW ============ -->
+  <section id="view-intro" class="view view-active">
+    <div class="intro-grid">
+      <div class="intro-copy">
+        <p class="eyebrow">پێوانەی زیرەکی · 28 پرسیار</p>
+        <h1 class="hero-title">چەند زیرەکیت؟<br><span class="hero-title-accent">مێشکت بخە ئەزموون.</span></h1>
+        <p class="hero-lede">
+          تاقیکردنەوەیەکی تەواو کراوە کە توانای بیرکردنەوەی لۆژیکی، وێنایی، ژمارەیی و وشەیی دەپشکنێت.
+          چوار بەشی جیاواز، نزیکەی 12-15 خولەک کات دەبات.
+        </p>
+
+        <ul class="feature-list">
+          <li><span class="feature-dot"></span> 28 پرسیار لە 4 جۆری جیاواز</li>
+          <li><span class="feature-dot"></span> ئەنجامی ڕاستەوخۆ لەگەڵ شیکردنەوە</li>
+          <li><span class="feature-dot"></span> بێ تۆمارکردن، بێ ئیمەیل</li>
+        </ul>
+
+        <button id="btn-start" class="btn-primary">
+          دەستپێکردنی تاقیکردنەوە
+          <span class="btn-arrow">←</span>
+        </button>
+
+        <p class="disclaimer-small">
+          ئەم تاقیکردنەوەیە بۆ خۆپاراستن و هەڵسەنگاندنی گشتیی تواناکانی مێشکە، جێگرەوەی هەڵسەنگاندنی
+          پسپۆڕانەی کلینیکی نییە.
+        </p>
+      </div>
+
+      <div class="intro-visual" aria-hidden="true">
+        <div class="dial-preview">
+          <svg viewBox="0 0 200 200" class="dial-svg">
+            <circle cx="100" cy="100" r="86" class="dial-track"></circle>
+            <circle cx="100" cy="100" r="86" class="dial-fill" style="stroke-dashoffset: 130;"></circle>
+          </svg>
+          <div class="dial-preview-label">
+            <span class="dial-preview-number">؟</span>
+            <span class="dial-preview-caption">ئاستی تۆ</span>
+          </div>
+        </div>
+        <div class="visual-shapes">
+          <div class="mini-shape mini-circle mini-1"></div>
+          <div class="mini-shape mini-diamond mini-2"></div>
+          <div class="mini-shape mini-hex mini-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-strip">
+      <div class="category-chip"><span class="chip-num">01</span>زنجیرەی ژمارە</div>
+      <div class="category-chip"><span class="chip-num">02</span>لۆژیکی شێوە</div>
+      <div class="category-chip"><span class="chip-num">03</span>پەیوەندی وشە</div>
+      <div class="category-chip"><span class="chip-num">04</span>وشەی نامۆ</div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ VIEW ============ -->
+  <section id="view-quiz" class="view">
+    <div class="quiz-topbar">
+      <div class="quiz-progress-wrap">
+        <div class="quiz-progress-labels">
+          <span id="quiz-category-label" class="quiz-category-label">زنجیرەی ژمارە</span>
+          <span id="quiz-counter" class="quiz-counter">1 / 28</span>
+        </div>
+        <div class="progress-track">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz-card">
+      <p id="question-instruction" class="question-instruction">کام ژمارە دواتر دێت؟</p>
+      <div id="question-body" class="question-body"></div>
+      <div id="options-grid" class="options-grid"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button id="btn-back" class="btn-ghost" disabled>پرسیاری پێشوو</button>
+      <button id="btn-next" class="btn-primary btn-next" disabled>پرسیاری داهاتوو <span class="btn-arrow">←</span></button>
+    </div>
+  </section>
+
+  <!-- ============ GATE VIEW (name, shown once quiz is finished) ============ -->
+  <section id="view-gate" class="view">
+    <div class="gate-card">
+      <p class="eyebrow">ئەنجامەکەت ئامادەیە</p>
+      <h2 class="gate-heading">ناوت بنووسە بۆ بینینی ئەنجام</h2>
+      <div class="gate-preview" aria-hidden="true">
+        <span class="gate-preview-number">؟؟</span>
+      </div>
+      <form id="gate-form" class="gate-form">
+        <input id="gate-name" class="text-input" type="text" maxlength="60"
+               placeholder="ناوت (ئارەزوومەندانە)" autocomplete="name">
+        <button type="submit" class="btn-primary gate-submit">بینینی ئەنجام <span class="btn-arrow">←</span></button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS VIEW ============ -->
+  <section id="view-results" class="view">
+    <div class="results-grid">
+      <div class="results-dial-col">
+        <div class="dial-preview dial-final">
+          <svg viewBox="0 0 200 200" class="dial-svg">
+            <circle cx="100" cy="100" r="86" class="dial-track"></circle>
+            <circle id="dial-fill-final" cx="100" cy="100" r="86" class="dial-fill"></circle>
+          </svg>
+          <div class="dial-preview-label">
+            <span id="score-number" class="dial-preview-number">0</span>
+            <span class="dial-preview-caption">خاڵی مامناوەند</span>
+          </div>
+        </div>
+        <p id="score-band" class="score-band">--</p>
+      </div>
+
+      <div class="results-detail-col">
+        <p class="eyebrow">ئەنجامی تاقیکردنەوە</p>
+        <h2 id="results-heading" class="results-heading">پێت خۆشە بزانیت؟</h2>
+        <p id="results-summary" class="results-summary"></p>
+
+        <div id="category-breakdown" class="category-breakdown"></div>
+
+        <div class="results-actions">
+          <button id="btn-retake" class="btn-primary">دووبارە تاقیکردنەوە<span class="btn-arrow">↻</span></button>
+        </div>
+
+        <div id="cert-panel" class="cert-panel">
+          <p class="cert-panel-title">بروانامەی فەرمی وەربگرە</p>
+          <p class="cert-panel-body">
+            وێنەیەکی بروانامە داگرە یان لینکێکی هاوبەشکردن دروست بکە بۆ ئەنجامەکەت.
+          </p>
+          <form id="cert-form" class="cert-form">
+            <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <input id="cert-email" class="text-input" type="email" maxlength="254"
+                   placeholder="ئیمەیل بۆ وەرگرتنی بروانامە (ئارەزوومەندانە)" autocomplete="email">
+            <div class="cert-form-actions">
+              <button type="button" id="btn-download-cert" class="btn-ghost">داگرتنی وێنەی بروانامە</button>
+              <button type="submit" id="btn-make-link" class="btn-primary">دروستکردنی لینک</button>
+            </div>
+          </form>
+          <div id="cert-link-row" class="cert-link-row" hidden>
+            <input id="cert-link-input" class="text-input" type="text" readonly>
+            <button id="btn-copy-link" class="btn-ghost" type="button">کۆپی</button>
+          </div>
+          <p id="cert-status" class="cert-status" aria-live="polite"></p>
+        </div>
+
+        <p class="disclaimer-small">
+          ئەم ئەنجامە تەنها بۆ ئاگاداری کەسییە و بنەمای زانستی وەک تاقیکردنەوەی ڕەسمی پسپۆڕی نییە.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <span>© تیزهۆشی</span>
+  <span class="footer-dot">·</span>
+  <span>دروستکراو بۆ هەڵسەنگاندنی زیرەکی</span>
+</footer>
+
+<canvas id="cert-canvas" width="1000" height="640" style="display:none"></canvas>
+<script src="script.js"></script>
+</body>
+</html>
