@@ -268,6 +268,74 @@
     ], 2
   ));
 
+  /* ---- harder additions ---- */
+
+  // N9-N11: less obvious numeric rules
+  QUESTIONS.push(numQ("n9", ["3", "7", "15", "31", "63", "؟"], ["95", "111", "127", "135"], 2)); // x2+1
+  QUESTIONS.push(numQ("n10", ["2", "6", "12", "20", "30", "؟"], ["36", "40", "42", "44"], 2)); // n(n+1)
+  QUESTIONS.push(numQ("n11", ["1", "2", "6", "24", "120", "؟"], ["600", "640", "720", "840"], 2)); // factorial
+
+  // A7-A9: more abstract relationships
+  QUESTIONS.push(analogyQ("a7", "ئاگر بۆ گەرمی، هەروەکو بەفر بۆ ___", ["سارمی", "ئاو", "زستان", "سپی"], 0));
+  QUESTIONS.push(analogyQ("a8", "دەرمان بۆ نەخۆشی، هەروەکو کلیل بۆ ___", ["قوفڵ", "دەرگا", "ماڵ", "زیندان"], 0));
+  QUESTIONS.push(analogyQ("a9", "پەنجە بۆ دەست، هەروەکو گەڵا بۆ ___", ["دار", "باخ", "ڕەگ", "گوڵ"], 0));
+
+  // O7-O9: odd one out by a subtler shared property, not obvious surface category
+  QUESTIONS.push(oddQ("o7", ["باران", "بەفر", "تەم", "خۆر"], 3)); // three involve moisture/precipitation
+  QUESTIONS.push(oddQ("o8", ["دەرزی", "مەقەص", "تیشوو", "چەقۆ"], 2)); // three are cutting tools, thread is material
+  QUESTIONS.push(oddQ("o9", ["وێنەکێشان", "پەیکەرتاشی", "وێنەگرتن", "مۆسیقا"], 3)); // three are visual arts
+
+  // S9-S11: two independent rules layered at once - the "hardest" tier
+  QUESTIONS.push(shapeQ("s9",
+    { kind: "row", items: [
+      { kind: "triangle", size: 30, color: ACCENT, rotation: 0 },
+      { kind: "square", size: 30, color: ACCENT },
+      { kind: "triangle", size: 30, color: ACCENT, rotation: 90 },
+      { kind: "square", size: 30, color: ACCENT },
+      { kind: "triangle", size: 30, color: ACCENT, rotation: 180 },
+      { kind: "square", size: 30, color: ACCENT }
+    ]},
+    [
+      { kind: "triangle", size: 30, color: ACCENT, rotation: 270 },
+      { kind: "triangle", size: 30, color: ACCENT, rotation: 90 },
+      { kind: "square", size: 30, color: ACCENT },
+      { kind: "diamond", size: 30, color: ACCENT }
+    ], 0
+  ));
+  // S10: two independent periodic cycles - shape repeats every 3, color repeats every 2
+  QUESTIONS.push(shapeQ("s10",
+    { kind: "row", items: [
+      { kind: "circle", size: 34, color: GOLD },
+      { kind: "square", size: 34, color: ACCENT },
+      { kind: "diamond", size: 34, color: GOLD },
+      { kind: "circle", size: 34, color: ACCENT },
+      { kind: "square", size: 34, color: GOLD }
+    ]},
+    [
+      { kind: "diamond", size: 34, color: GOLD },
+      { kind: "diamond", size: 34, color: ACCENT },
+      { kind: "circle", size: 34, color: ACCENT },
+      { kind: "square", size: 34, color: ACCENT }
+    ], 1
+  ));
+  // S11: exponential growth (doubling), not linear
+  QUESTIONS.push({
+    id: "s11", category: "shape", bodyType: "visual",
+    visual: { kind: "custom", html:
+      '<div class="question-visual-row">' +
+      dotsEl(1) + dotsEl(2) + dotsEl(4) + dotsEl(8) +
+      '<span style="font-size:28px;font-weight:800;color:var(--accent)">؟</span>' +
+      "</div>"
+    },
+    options: [
+      { type: "custom", html: dotsEl(10) },
+      { type: "custom", html: dotsEl(12) },
+      { type: "custom", html: dotsEl(16) },
+      { type: "custom", html: dotsEl(20) }
+    ],
+    correctIndex: 2
+  });
+
   /* shuffle categories together in a fixed pleasant order: gently interleaved */
   function interleave() {
     var byCat = { number: [], shape: [], analogy: [], odd: [] };
@@ -419,6 +487,8 @@
     });
 
     var pct = totalCorrect / ORDERED.length;
+    // Friendly score scaled roughly onto a familiar 70-145 style band,
+    // clearly framed as an informal estimate (see disclaimer).
     var scaledScore = Math.round(70 + pct * 75);
 
     var band, heading, summary;
@@ -505,6 +575,7 @@
     certLinkInput.value = "";
     certStatus.textContent = "";
     certStatus.className = "cert-status";
+    state.certSerial = null;
   }
 
   function setCertStatus(text, kind) {
@@ -517,7 +588,7 @@
     var payload = {
       name: state.name || "",
       email: email || "",
-      website: "",
+      website: "", // honeypot, always empty for real users
       scaledScore: r.scaledScore,
       pct: r.pct,
       band: r.band,
@@ -548,7 +619,7 @@
   certForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     var honeypot = certForm.querySelector('input[name="website"]').value;
-    if (honeypot) return;
+    if (honeypot) return; // silently ignore, bot filled the trap field
 
     var email = certEmailInput.value.trim();
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -582,58 +653,201 @@
 
   /* ---------- certificate image (client-side canvas, no backend needed) ---------- */
 
+  function certSerial() {
+    if (!state.certSerial) {
+      var chars = "0123456789ABCDEF";
+      var code = "";
+      for (var i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      state.certSerial = "TZ-" + code;
+    }
+    return state.certSerial;
+  }
+
+  var CAT_ORDER_FOR_CERT = ["number", "shape", "analogy", "odd"];
+
   function drawCertificate() {
     var r = state.lastResults;
     var canvas = document.getElementById("cert-canvas");
+
+    // Render at 2x so the downloaded file looks crisp on high-density phone
+    // screens, not just on a standard desktop monitor.
+    var SCALE = 2;
+    var W = 1000, H = 780;
+    canvas.width = W * SCALE;
+    canvas.height = H * SCALE;
     var ctx = canvas.getContext("2d");
-    var w = canvas.width, h = canvas.height;
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+    ctx.clearRect(0, 0, W, H);
 
-    ctx.clearRect(0, 0, w, h);
+    var INK_C = "#1a2530", GOLD_C = "#a9823f", ACCENT_C = "#7a2e2e",
+        SOFT_C = "#55636d", FAINT_C = "#8b9395", PAPER_DEEP_C = "#efe7d4";
 
+    // paper background with a soft tint in two corners, echoing the site's texture
     ctx.fillStyle = "#f7f3ea";
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillRect(0, 0, W, H);
+    var g1 = ctx.createRadialGradient(120, 90, 0, 120, 90, 340);
+    g1.addColorStop(0, "rgba(122,46,46,0.05)");
+    g1.addColorStop(1, "rgba(122,46,46,0)");
+    ctx.fillStyle = g1;
+    ctx.fillRect(0, 0, W, H);
+    var g2 = ctx.createRadialGradient(W - 120, H - 90, 0, W - 120, H - 90, 380);
+    g2.addColorStop(0, "rgba(169,130,63,0.07)");
+    g2.addColorStop(1, "rgba(169,130,63,0)");
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 0, W, H);
 
-    ctx.strokeStyle = "rgba(26,37,48,0.18)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(28, 28, w - 56, h - 56);
-    ctx.strokeStyle = "#a9823f";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(44, 44, w - 88, h - 88);
+    // ornamental double border
+    ctx.strokeStyle = "rgba(26,37,48,0.16)";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(24, 24, W - 48, H - 48);
+    ctx.strokeStyle = GOLD_C;
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(40, 40, W - 80, H - 80);
+
+    // small diamond ornaments at the four inner corners
+    function cornerDiamond(cx, cy) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = GOLD_C;
+      ctx.fillRect(-5, -5, 10, 10);
+      ctx.restore();
+    }
+    cornerDiamond(40, 40);
+    cornerDiamond(W - 40, 40);
+    cornerDiamond(40, H - 40);
+    cornerDiamond(W - 40, H - 40);
 
     ctx.direction = "rtl";
     ctx.textAlign = "center";
 
-    ctx.fillStyle = "#a9823f";
-    ctx.font = "700 22px Vazirmatn, Tahoma, sans-serif";
-    ctx.fillText("بروانامەی فەرمی", w / 2, 130);
+    // seal emblem (mirrors the site's circular brand mark)
+    var sealX = W / 2, sealY = 96, sealR = 30;
+    ctx.beginPath();
+    ctx.arc(sealX, sealY, sealR + 8, 0, Math.PI * 2);
+    ctx.strokeStyle = GOLD_C;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([2, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-    ctx.fillStyle = "#1a2530";
-    ctx.font = "800 34px Vazirmatn, Tahoma, sans-serif";
-    ctx.fillText("تیزهۆشی", w / 2, 175);
+    ctx.beginPath();
+    ctx.arc(sealX, sealY, sealR, 0, Math.PI * 2);
+    ctx.fillStyle = INK_C;
+    ctx.fill();
+    ctx.fillStyle = "#f7f3ea";
+    ctx.font = "800 26px Vazirmatn, Tahoma, sans-serif";
+    ctx.textBaseline = "middle";
+    ctx.fillText("ت", sealX, sealY + 2);
+    ctx.textBaseline = "alphabetic";
+
+    ctx.fillStyle = INK_C;
+    ctx.font = "800 30px Vazirmatn, Tahoma, sans-serif";
+    ctx.fillText("تیزهۆشی", W / 2, 168);
+
+    ctx.fillStyle = GOLD_C;
+    ctx.font = "700 15px Vazirmatn, Tahoma, sans-serif";
+    ctx.fillText("بروانامەی فەرمی", W / 2, 192);
+
+    // divider with center diamond
+    function divider(y, halfWidth) {
+      ctx.strokeStyle = "rgba(26,37,48,0.2)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(W / 2 - halfWidth, y);
+      ctx.lineTo(W / 2 - 8, y);
+      ctx.moveTo(W / 2 + 8, y);
+      ctx.lineTo(W / 2 + halfWidth, y);
+      ctx.stroke();
+      ctx.save();
+      ctx.translate(W / 2, y);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = GOLD_C;
+      ctx.fillRect(-4, -4, 8, 8);
+      ctx.restore();
+    }
+    divider(222, 90);
 
     var displayName = state.name && state.name.trim() ? state.name.trim() : "میوانێکی تیزهۆش";
-    ctx.font = "800 44px Vazirmatn, Tahoma, sans-serif";
-    ctx.fillStyle = "#1a2530";
-    ctx.fillText(displayName, w / 2, 280);
+    ctx.fillStyle = INK_C;
+    ctx.font = "800 40px Vazirmatn, Tahoma, sans-serif";
+    ctx.fillText(displayName, W / 2, 278);
 
-    ctx.font = "700 20px Vazirmatn, Tahoma, sans-serif";
-    ctx.fillStyle = "#7a2e2e";
-    ctx.fillText(r.band, w / 2, 320);
+    ctx.fillStyle = ACCENT_C;
+    ctx.font = "700 18px Vazirmatn, Tahoma, sans-serif";
+    ctx.fillText(r.band, W / 2, 310);
 
-    ctx.font = "900 110px Vazirmatn, Tahoma, sans-serif";
-    ctx.fillStyle = "#1a2530";
-    ctx.fillText(String(r.scaledScore), w / 2, 460);
+    ctx.fillStyle = INK_C;
+    ctx.font = "900 96px Vazirmatn, Tahoma, sans-serif";
+    ctx.fillText(String(r.scaledScore), W / 2, 418);
 
-    ctx.font = "500 16px Vazirmatn, Tahoma, sans-serif";
-    ctx.fillStyle = "#55636d";
-    ctx.fillText("خاڵی مامناوەند", w / 2, 490);
+    ctx.fillStyle = SOFT_C;
+    ctx.font = "500 15px Vazirmatn, Tahoma, sans-serif";
+    ctx.fillText("خاڵی مامناوەند", W / 2, 444);
 
+    divider(472, 60);
+
+    // category breakdown, mirroring the results page
+    var barLeft = 220, barRight = 780, barW = barRight - barLeft;
+    var rowY = 512;
+    CAT_ORDER_FOR_CERT.forEach(function (cat) {
+      var total = r.totals[cat] || 0;
+      var got = r.correct[cat] || 0;
+      var pct = total ? got / total : 0;
+
+      ctx.textAlign = "right";
+      ctx.fillStyle = SOFT_C;
+      ctx.font = "600 14px Vazirmatn, Tahoma, sans-serif";
+      ctx.fillText(CATEGORY_LABELS[cat], barRight, rowY + 5);
+
+      var trackY = rowY - 10;
+      ctx.fillStyle = PAPER_DEEP_C;
+      roundRect(ctx, barLeft, trackY, barW * 0.62, 7, 3.5);
+      ctx.fill();
+      var fillGrad = ctx.createLinearGradient(barLeft, 0, barLeft + barW * 0.62, 0);
+      fillGrad.addColorStop(0, "#c9a662");
+      fillGrad.addColorStop(1, ACCENT_C);
+      ctx.fillStyle = fillGrad;
+      roundRect(ctx, barLeft, trackY, Math.max(6, barW * 0.62 * pct), 7, 3.5);
+      ctx.fill();
+
+      ctx.textAlign = "left";
+      ctx.direction = "ltr";
+      ctx.fillStyle = INK_C;
+      ctx.font = "700 13px Vazirmatn, Tahoma, sans-serif";
+      ctx.fillText(got + "/" + total, barLeft + barW * 0.62 + 16, rowY + 5);
+      ctx.direction = "rtl";
+
+      rowY += 34;
+    });
+
+    // footer: date + serial number, both short alphanumeric strings so we
+    // force LTR explicitly (see note on canvas bidi limitations below).
+    ctx.textAlign = "center";
     var dateStr = new Date().toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" });
     ctx.direction = "ltr";
-    ctx.font = "400 15px Vazirmatn, Tahoma, sans-serif";
-    ctx.fillStyle = "#8b9395";
-    ctx.fillText(dateStr, w / 2, 560);
+    ctx.font = "400 14px Vazirmatn, Tahoma, sans-serif";
+    ctx.fillStyle = FAINT_C;
+    ctx.fillText(dateStr, W / 2, H - 66);
+
+    // Canvas text doesn't apply full bidi reordering the way HTML does, so a
+    // mixed Latin/number string drawn with direction:"rtl" comes out
+    // scrambled. Serial number and date are both forced to "ltr" for that reason.
+    ctx.font = "500 12px Vazirmatn, Tahoma, sans-serif";
+    ctx.fillStyle = "rgba(139,147,149,0.8)";
+    ctx.fillText(certSerial(), W / 2, H - 44);
     ctx.direction = "rtl";
+  }
+
+  function roundRect(ctx, x, y, w, h, radius) {
+    var r = Math.min(radius, h / 2, w / 2 > 0 ? w / 2 : radius);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
   }
 
   btnDownloadCert.addEventListener("click", function () {
@@ -701,6 +915,7 @@
     showView(viewIntro);
   });
 
+  // animate intro dial gently on load for visual interest
   window.addEventListener("load", function () {
     var introDial = document.querySelector("#view-intro .dial-fill");
     if (introDial) {
