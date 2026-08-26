@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tizhoshi",
+  "pages_build_output_dir": "./",
+  "compatibility_date": "2026-08-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "kv_namespaces": [
+    { "binding": "RESULTS", "id": "REPLACE_WITH_RESULTS_KV_ID" },
+    { "binding": "LEADS", "id": "REPLACE_WITH_LEADS_KV_ID" }
+  ]
+}
