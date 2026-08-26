@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بەڕێوەبردن — تیزهۆشی</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  body { max-width: 900px; margin: 0 auto; padding: 40px 20px 80px; }
+  .admin-card {
+    background: var(--paper-card); border: 1px solid var(--line); border-radius: var(--radius-l);
+    box-shadow: var(--shadow-card); padding: clamp(24px, 5vw, 40px);
+  }
+  .token-row { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+  .token-row .text-input { flex: 1; min-width: 200px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: right; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--ink-soft); font-weight: 700; font-size: 12.5px; }
+  .msg { font-size: 13.5px; color: var(--ink-soft); margin-top: 10px; }
+  .msg.err { color: var(--accent); }
+  .table-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="paper-texture" aria-hidden="true"></div>
+
+<h1 style="font-size:22px;font-weight:800;margin-bottom:20px;">لیستی پەیوەندیکاران</h1>
+
+<div class="admin-card">
+  <div class="token-row">
+    <input id="token-input" class="text-input" type="password" placeholder="تۆکنی بەڕێوەبردن (ADMIN_TOKEN)">
+    <button id="btn-load" class="btn-primary" style="padding:14px 24px;">بارکردن</button>
+  </div>
+  <div class="table-wrap">
+    <table id="leads-table" hidden>
+      <thead>
+        <tr><th>ناو</th><th>ئیمەیل</th><th>خاڵ</th><th>ئاست</th><th>بەروار</th></tr>
+      </thead>
+      <tbody id="leads-body"></tbody>
+    </table>
+  </div>
+  <p id="admin-msg" class="msg"></p>
+</div>
+
+<script>
+(function () {
+  var tokenInput = document.getElementById("token-input");
+  var btnLoad = document.getElementById("btn-load");
+  var table = document.getElementById("leads-table");
+  var tbody = document.getElementById("leads-body");
+  var msg = document.getElementById("admin-msg");
+
+  var saved = sessionStorage.getItem("tizhoshi_admin_token");
+  if (saved) tokenInput.value = saved;
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  }
+
+  async function loadLeads() {
+    var token = tokenInput.value.trim();
+    if (!token) {
+      msg.textContent = "تۆکنەکە بنووسە.";
+      msg.className = "msg err";
+      return;
+    }
+    sessionStorage.setItem("tizhoshi_admin_token", token);
+    msg.textContent = "بارکردن...";
+    msg.className = "msg";
+    table.hidden = true;
+
+    try {
+      var res = await fetch("/api/admin/leads", {
+        headers: { authorization: "Bearer " + token }
+      });
+      if (res.status === 401) {
+        msg.textContent = "تۆکنەکە هەڵەیە.";
+        msg.className = "msg err";
+        return;
+      }
+      if (!res.ok) {
+        msg.textContent = "هەڵەیەک ڕوویدا (کۆد " + res.status + "). ڕەنگە هێشتا KV/ADMIN_TOKEN ڕێکنەخراوە.";
+        msg.className = "msg err";
+        return;
+      }
+      var data = await res.json();
+      var leads = data.leads || [];
+      tbody.innerHTML = "";
+      leads.forEach(function (lead) {
+        var tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td>" + escapeHtml(lead.name || "—") + "</td>" +
+          "<td>" + escapeHtml(lead.email || "—") + "</td>" +
+          "<td>" + escapeHtml(lead.scaledScore != null ? lead.scaledScore : "—") + "</td>" +
+          "<td>" + escapeHtml(lead.band || "—") + "</td>" +
+          "<td>" + escapeHtml(lead.createdAt ? new Date(lead.createdAt).toLocaleString("en-GB") : "—") + "</td>";
+        tbody.appendChild(tr);
+      });
+      table.hidden = leads.length === 0;
+      msg.textContent = leads.length ? (leads.length + " تۆمار") : "هیچ تۆمارێک نییە.";
+      msg.className = "msg";
+    } catch (err) {
+      msg.textContent = "نەتوانرا پەیوەندی بکرێت.";
+      msg.className = "msg err";
+    }
+  }
+
+  btnLoad.addEventListener("click", loadLeads);
+  tokenInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") loadLeads();
+  });
+})();
+</script>
+</body>
+</html>
